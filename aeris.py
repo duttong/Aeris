@@ -43,6 +43,9 @@ class Aeris:
                 if a.valid_packet(self.partial):
                     packets.append(self.partial)
                     self.partial = ''
+                elif len(self.partial) > 90:
+                    # something went wrong try to reset
+                    self.partial = ''
             else:
                 packets.append(packet)
 
@@ -67,10 +70,9 @@ if __name__ == '__main__':
 
     a = Aeris(port=options.port)
 
-    partial = ''
     for n in range(options.seconds):
         pks = a.return_packets()
         for p in pks:
-            print(p)
+            print(len(p), p)
 
         time.sleep(1)
