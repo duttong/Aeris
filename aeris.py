@@ -1,24 +1,33 @@
 #! /usr/bin/env python
 
 import serial
-import time
+from time import sleep
 import argparse
 import logging
 
 from valco import SSV
+import config as cfg
 
 
 class Aeris:
 
     partial = ''
 
-    def __init__(self, port='/dev/cu.usbserial-1410'):
-        self.port = port
+    def __init__(self):
+        self.start_logger()
         self.aeris = self.aeris_connect()
+
+    def start_logger(self):
+        file = f'{cfg.aeris_logfile}'
+        logging.basicConfig(filename=file, filemode='w',
+                level=logging.DEBUG,
+                format='%(asctime)s.%(msecs)03d, %(levelname)s: %(message)s',
+                datefmt='%Y-%m-%d, %H:%M:%S')
 
     def aeris_connect(self):
         """ Setup serial connection to Aeris N2O/CO instrument """
-        ser = serial.Serial(self.port, timeout=0.05, baudrate=9600)
+        print(f'Connecting to Aeris on port {cfg.aeris_port}')
+        ser = serial.Serial(cfg.aeris_port, timeout=0.05, baudrate=9600)
         ser.flushInput()
         return ser
 
@@ -48,6 +57,17 @@ class Aeris:
             serial port read. """
         data = self.read_data()
         packets = []
+
+        if len(data) == 0:
+            return packets
+
+        # handle a scenario where the \r\n charaters are split across
+        # two packets.
+        if data[-1] == '\r':
+            data += '\n'
+        if data[0] == '\n':
+            data = data[1:]
+
         # parse data packets between \r\n
         for packet in filter(None, data.split('\r\n')):
             if not self.valid_packet(packet):
@@ -58,7 +78,7 @@ class Aeris:
                     self.partial = ''
                 elif len(self.partial) > 90:
                     # something went wrong try to reset
-                    logging.warning(f'partial packet lenght too long: {self.partial}')
+                    logging.warning(f'partial packet length too long: {self.partial}')
                     self.partial = ''
             else:
                 packets.append(packet)
@@ -71,29 +91,52 @@ class Aeris:
             pks = self.return_packets()
             for p in pks:
                 print(p)
-            time.sleep(1)
+            sleep(1)
+
+
+class Instrument(Aeris):
+
+    newfile = True
+
+    def __init__(self):
+        super().__init__()
+        self.ssv = SSV(cfg.ssv_add, port=cfg.ssv_port)
+        self.ssv.verbose = True
+
+    def save_aeris(self, packet, ssv_position):
+        """ Save data packets with SSV postion to a .csv file """
+        with open(cfg.aeris_datafile, 'a') as f:
+            for p in filter(None, packet):
+                p = f'{p},{ssv_position:02d}'
+                if self.newfile:
+                    f.write('datetime,inlet_num,press_gas,temp_gas,n2o,h2o,co,temp_amb,code,ssv\n')
+                    self.newfile = False
+                f.write(p+'\n')
+                print(p)
+
+    def run(self, seq):
+        """ Run a valve sequence. Store data """
+        assert isinstance(seq, list)    # seq must be a list()
+
+        for ssv_position, duration in seq:
+            self.ssv.go(ssv_position)
+            for sec in range(duration):
+                pks = self.return_packets()
+                self.save_aeris(pks, ssv_position)
+                sleep(1)
 
 
 if __name__ == '__main__':
 
-    default_port = '/dev/cu.usbserial-1410'
-
     opt = argparse.ArgumentParser(description='Aeris N2O/CO instrument.')
-    opt.add_argument('-p', action='store', default=default_port,
-        dest='port', help=f'serial port to use (default is {default_port})')
     opt.add_argument('-t', action='store', type=int, metavar='SECONDS',
         dest='test', help='Test Aeris. Number of seconds to collect data.')
     options = opt.parse_args()
 
-    # instance for instrument
-    aeris = Aeris(port=options.port)
-
     if options.test:
+        aeris = Aeris()
         aeris.test(options.test)
         quit()
 
-    valve = SSV(port='/dev/cu.usbserial')
-
-    iter = 5
-    seq = [1, 2, 3, 4] * iter      # valve postions
-    seq_dur = 60    # seconds
+    aeris = Instrument()
+    aeris.run(cfg.seq)
