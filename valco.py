@@ -190,7 +190,7 @@ class SSV(Valco_Valve_Commands):
         self.send_cmd(self.add, 'np')
         m = re.search(r'= (\d+)', self.read_cmd())
         if m is None:
-            sys.stderr.write("Can't determine number of ports on SSV. NP command failed.")
+            sys.stderr.write("Can't determine number of ports on SSV. NP command failed.\n")
             return 0
         return int(m.group(1))
 
