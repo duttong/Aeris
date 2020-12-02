@@ -103,13 +103,13 @@ class Instrument(Aeris):
         self.ssv = SSV(cfg.ssv_add, port=cfg.ssv_port)
         self.ssv.verbose = True
 
-    def save_aeris(self, packet, ssv_position):
+    def save_aeris(self, packet, ssv_position, seq_count):
         """ Save data packets with SSV postion to a .csv file """
         with open(cfg.aeris_datafile, 'a') as f:
             for p in filter(None, packet):
-                p = f'{p},{ssv_position:02d}'
+                p = f'{p},{ssv_position:02d},{seq_count:02d}'
                 if self.newfile:
-                    f.write('datetime,inlet_num,press_gas,temp_gas,n2o,h2o,co,temp_amb,code,ssv\n')
+                    f.write('datetime,inlet_num,press_gas,temp_gas,n2o,h2o,co,temp_amb,code,ssv,seq_count\n')
                     self.newfile = False
                 f.write(p+'\n')
                 print(p)
@@ -118,11 +118,11 @@ class Instrument(Aeris):
         """ Run a valve sequence. Store data """
         assert isinstance(seq, list)    # seq must be a list()
 
-        for ssv_position, duration in seq:
+        for ssv_position, seq_count, duration in seq:
             self.ssv.go(ssv_position)
             for sec in range(duration):
                 pks = self.return_packets()
-                self.save_aeris(pks, ssv_position)
+                self.save_aeris(pks, ssv_position, seq_count)
                 sleep(1)
 
 
