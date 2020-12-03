@@ -3,8 +3,9 @@
 <p>The main program to run the Aeris instrument equipped with a multi-position Valco valve is <strong>aeris.py</strong>. Run <strong>aeris.py -h</strong> to see the various options for the program.</p>
 
 <h3>Initial Setup</h3>
-<p>1. Edit the <strong>config.py</strong> file with the Valco valve and Aeris serial port settings.
-<p>2. Change the valve sequence and duration in <strong>config.py</strong>.
+<p>1. The Aeris instrument should be configured to send data out the USB port (see manual)</p>
+<p>2. Edit the <strong>config.py</strong> file with the Valco valve and Aeris serial port settings.</p>
+<p>3. Change the valve sequence and duration in <strong>config.py</strong>.</p>
 
 <p>Run <strong>aeris.py</strong> without options to use the valve sequence programed in the config.py file. The <strong>aeris.py</strong> program will store the output of the Aeris instrument to a .csv file.</p>
 
