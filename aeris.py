@@ -43,9 +43,11 @@ class Aeris:
     def valid_packet(self, packet):
         """ Criteria for a full data packet from the Aeris instrument.
             A valid packet has 9 cells of data and the first cell is
-            exactly 23 characters (MM/DD/YYYY HH:MM:SS.sss) """
+            exactly 23 characters (MM/DD/YYYY HH:MM:SS.sss).
+            CHANGE as of 12/17/20: for some unknown reason there are
+            now 11 cells of data. """
         datums = list(filter(None, packet.split(',')))
-        if len(datums) != 9 or len(datums[0]) != 23:
+        if len(datums) != 11 or len(datums[0]) != 23:
             return False
         return True
 
@@ -109,7 +111,7 @@ class Instrument(Aeris):
             for p in filter(None, packet):
                 p = f'{p},{ssv_position:02d},{seq_count:02d}'
                 if self.newfile:
-                    f.write('datetime,inlet_num,press_gas,temp_gas,n2o,h2o,co,temp_amb,code,ssv,seq_count\n')
+                    f.write('datetime,inlet_num,press_gas,temp_gas,n2o,h2o,co,temp_amb,code,ukw1,ukw2,ssv,seq_count\n')
                     self.newfile = False
                 f.write(p+'\n')
                 print(p)
