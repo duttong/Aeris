@@ -11,8 +11,5 @@
 
 <h3>To read the Aeris .csv data file into a python pandas dataframe.</h3>
 <pre><code>df = pd.read_csv(file, infer_datetime_format=True, parse_dates=True, index_col='datetime')</code></pre>
-<p>To calculate statistics on the second half of each SSV position after a valve switch.</p>
-<pre><code><p>df2 = df.groupby(['seq_count','ssv'], as_index=False).apply(lambda x: x.iloc[x.ssv.size//2:]).reset_index(level=0, drop=True)
-<p>df2.groupby(['seq_count','ssv']).agg(['mean','std'])</code></pre>
-
+<p>call <strong>stats.py</strong> aeris_datafile.csv for basic stats</p>
 
