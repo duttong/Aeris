@@ -22,4 +22,5 @@ df2 = df.groupby(['seq_count', 'ssv'], as_index=False).apply(lambda x: x.iloc[x.
 print(df2.groupby(['seq_count', 'ssv'])[['n2o', 'co']].agg(['mean', 'std', pct, 'count']))
 
 # stats on each ssv position for all valve sequences.
+print('\n\nStatistics on each SSV:\n')
 print(df2.groupby(['ssv'])[['n2o', 'co']].agg(['mean', 'std', pct, 'count']))
