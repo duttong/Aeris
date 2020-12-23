@@ -78,7 +78,7 @@ class Aeris:
                 if self.valid_packet(self.partial):
                     packets.append(self.partial)
                     self.partial = ''
-                elif len(self.partial) > 90:
+                elif len(self.partial) > 110:
                     # something went wrong try to reset
                     logging.warning(f'partial packet length too long: {self.partial}')
                     self.partial = ''
