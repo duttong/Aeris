@@ -127,6 +127,10 @@ class Instrument(Aeris):
                 self.save_aeris(pks, ssv_position, seq_count)
                 sleep(1)
 
+        # return the SSV to the "home" position
+        self.ssv.home()
+        sleep(1)
+
 
 if __name__ == '__main__':
 
