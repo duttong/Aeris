@@ -15,11 +15,16 @@ options = opt.parse_args()
 
 file = options.csvfile
 df = pd.read_csv(file, infer_datetime_format=True, parse_dates=True, index_col='datetime')
+df = df.sort_index()
+
+# state keeps track of ssv transitions
+df['state'] = (df['ssv'].diff() != 0).cumsum()
+
 # discard the first 1/3 of the data after a ssv switch
-df2 = df.groupby(['seq_count', 'ssv'], as_index=False).apply(lambda x: x.iloc[x.ssv.size//3:]).reset_index(level=0, drop=True)
+df2 = df.groupby(['state'], as_index=False).apply(lambda x: x.iloc[x.ssv.size//3:]).reset_index(level=0, drop=True)
 
 # stats on each ssv position for each valve sequence
-print(df2.groupby(['seq_count', 'ssv'])[['n2o', 'co']].agg(['mean', 'std', pct, 'count']))
+print(df2.groupby(['state', 'seq_count', 'ssv'])[['n2o', 'co']].agg(['mean', 'std', pct, 'count']))
 
 # stats on each ssv position for all valve sequences.
 print('\n\nStatistics on each SSV:\n')
